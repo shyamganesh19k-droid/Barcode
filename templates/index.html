@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Label Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f7f9fc; }
+        .primary-bg { background-color: #112369; }
+        .accent-red { color: #f54956; }
+        .accent-yellow { color: #f7a531; }
+        .accent-green { color: #38a85b; }
+
+        @media print {
+            /* Hide everything except the label container */
+            body, html {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+
+            .print-hide, header, .main-content {
+                display: none !important;
+            }
+
+            .label-print-only {
+                display: block !important;
+                width: 100%;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+            }
+
+            .label-print-only img {
+                max-width: 100%;
+                height: auto;
+                box-shadow: none !important;
+                border: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center">
+
+    <!-- Header -->
+    <header class="primary-bg w-full flex items-center justify-between px-6 py-4 shadow-md print-hide">
+        <div class="flex items-center space-x-3">
+            <img src="{{ url_for('static', filename='Onelern.png') }}" alt="Onelern Logo" class="h-12">
+            <h1 class="text-white text-2xl font-bold">Product Label Generator</h1>
+        </div>
+    </header>
+
+    <!-- Form & Generated Preview -->
+    <main class="flex-1 w-full flex flex-row p-6 gap-6 print-hide main-content">
+        <div class="w-1/2 bg-white shadow-lg rounded-2xl p-6">
+            <h2 class="text-xl font-bold mb-4 accent-red">Enter One SKU Details</h2>
+            {% if error %}<div class="bg-red-100 text-red-600 p-2 mb-3 rounded">{{ error }}</div>{% endif %}
+            <form method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">SKU:</label>
+                    <input type="text" name="sku" value="{{ sku or '' }}"
+                           class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#112369]" required>
+                </div>
+
+                {% if product_name %}
+                    <div>
+                        <label class="block text-sm font-medium">MRP (Optional):</label>
+                        <input type="text" name="mrp" value="{{ mrp or '' }}"
+                               class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#38a85b]">
+                    </div>
+                    <p class="mt-2 text-gray-700">📦 Product: <b>{{ product_name }}</b></p>
+                {% endif %}
+
+                <div class="flex space-x-3 mt-4">
+                    {% if not product_name %}
+                        <button type="submit" name="search"
+                                class="bg-[#112369] text-white px-4 py-2 rounded-lg hover:bg-blue-900">Search</button>
+                    {% else %}
+                        <button type="submit" name="generate"
+                                class="bg-[#38a85b] text-white px-4 py-2 rounded-lg hover:bg-green-700">Generate Label</button>
+                        <a href="{{ url_for('cancel') }}"
+                           class="bg-[#f54956] text-white px-4 py-2 rounded-lg hover:bg-red-700">Cancel</a>
+                        {% if label %}
+                            <a href="{{ url_for('download_pdf', sku=sku, mrp=mrp or 'NA') }}"
+                               class="bg-[#f7a531] text-white px-4 py-2 rounded-lg hover:bg-yellow-600">Download PDF</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Label Preview Section -->
+        <div class="w-1/2 bg-white shadow-lg rounded-2xl p-6 flex flex-col items-center justify-center">
+            <h2 class="text-xl font-bold mb-4 accent-yellow">Generated Label</h2>
+            {% if label %}
+                <div class="label-container">
+                    <img src="{{ url_for('static', filename='labels/' + label) }}"
+                         alt="Generated Label" class="border rounded-lg shadow mb-4">
+                    <button id="printBtn" class="bg-[#112369] text-white px-4 py-2 rounded-lg hover:bg-blue-900 print-hide">
+                        🖨️ Print Label
+                    </button>
+                </div>
+            {% else %}
+                <p class="text-gray-500">No label generated yet.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Hidden Label Container for Print Only -->
+    {% if label %}
+    <div class="label-print-only" style="display: none;">
+        <img src="{{ url_for('static', filename='labels/' + label) }}" alt="Printable Label">
+    </div>
+    {% endif %}
+
+    <script>
+        document.getElementById("printBtn")?.addEventListener("click", () => {
+            window.print();
+        });
+    </script>
+</body>
+</html>
