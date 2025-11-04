@@ -1,7 +1,0 @@
-[project]
-name = "my-flask-app"
-version = "0.1.0"
-requires-python = ">=3.11,<3.12"
-dependencies = [
-  "Flask>=3.0.0"
-]
