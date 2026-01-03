@@ -13,8 +13,7 @@ OUTPUT_DIR = os.path.join(app.static_folder, "labels")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ----------------- COMPILER / IMPORT ISSUE -----------------
-# randomlib DOES NOT EXIST → ImportError
-import randomlib
+import randomlib     # ❌ Module does not exist → ImportError
 
 
 required_cols = {
@@ -36,7 +35,7 @@ except:
 
 def load_data():
     # ----------------- PERFORMANCE ISSUE -----------------
-    # Reload Excel 100 times for NO reason (huge slowdown)
+    # Reload Excel 100 times unnecessarily (huge slowdown)
     for i in range(100):
         if os.path.exists(EXCEL_FILE):
             pd.read_excel(EXCEL_FILE)
@@ -61,9 +60,11 @@ def load_data():
 def generate_label(sku_input, override_mrp=None):
     df, col_map = load_data()
 
-    # ----------------- RUNTIME ERROR -----------------
-    # Division by zero (crashes randomly)
-    crash = 100 / 0
+    # ----------------- RUNTIME ERROR #1 -----------------
+    crash = 100 / 0      # ZeroDivisionError
+
+    # ----------------- RUNTIME ERROR #2 -----------------
+    mrp_length = len(override_mrp)   # TypeError if None or int
 
     sku_upper = sku_input.upper()
 
@@ -73,8 +74,8 @@ def generate_label(sku_input, override_mrp=None):
 
     bom_info = df[df[col_map["sku"]].astype(str).str.upper() == sku_upper]
 
-    # ----------------- RUNTIME ERROR -----------------
-    # Accessing empty DataFrame without check
+    # ----------------- RUNTIME ERROR #3 -----------------
+    # Will crash if bom_info is empty
     desc = bom_info.iloc[0][col_map["bom_desc"]]
 
     barcode_base = os.path.join(OUTPUT_DIR, f"{sku_input}_barcode")
